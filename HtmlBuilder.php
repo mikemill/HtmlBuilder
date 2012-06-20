@@ -3,12 +3,15 @@ namespace HtmlBuilder;
 
 class Base
 {
+	static protected $objcounter = 0;
+	protected $uniqid = null;
 	protected $elem = null;
 	protected $attributes = array();
 	protected $children = array();
 
 	public function __construct($elem)
 	{
+		$this->uniqid = ++self::$objcounter;
 		$this->elem = $elem;
 	}
 
@@ -29,8 +32,30 @@ class Base
 		return $ret;
 	}
 
+	/**
+	 *
+	 * @param Base $obj
+	 */
+	protected function recursive_check($obj)
+	{
+		$this->_recursive_check($obj);
+		$obj->_recursive_check($this);
+	}
+	
+	protected function _recursive_check($obj)
+	{
+		if ($this->uniqid == $obj->uniqid)
+			throw new HtmlBuilderException('Can not recursivly add objects');
+
+		foreach ($this->children AS $child)
+		{
+			$child->recursive_check($obj);
+		}
+	}
+
 	public function append($obj)
 	{
+		$this->recursive_check($obj);
 		$this->children[] = $obj;
 		return $this;
 	}
@@ -48,6 +73,7 @@ class Base
 
 	public function prepend($obj)
 	{
+		$this->recursive_check($obj);
 		array_unshift($this->children, $obj);
 		return $this;
 	}
@@ -86,6 +112,7 @@ class Text extends Base
 {
 	public function __construct($text)
 	{
+		$this->uniqid = ++self::$objcounter;
 		$this->elem = $text;
 	}
 
@@ -111,12 +138,12 @@ class SelfClosing extends Base
 	
 	public function append($elem)
 	{
-		throw new Exception('Can not append a child node to a self closing element.');
+		throw new HtmlBuilderException('Can not append a child node to a self closing element.');
 	}
 
 	public function prepend($elem)
 	{
-		throw new Exception('Can not prepend a child node to a self closing element.');
+		throw new HtmlBuilderException('Can not prepend a child node to a self closing element.');
 	}
 }
 
@@ -126,6 +153,10 @@ class imgElement extends SelfClosing
 	{
 		parent::__construct('img');
 	}
+}
+
+class HtmlBuilderException extends \Exception
+{
 }
 
 function hb($elem)

@@ -73,4 +73,59 @@ class BaseTest extends \PHPUnit_Framework_TestCase
 		$this->assertEquals($obj->attr('id'), 'foo');
 		$this->assertNull($obj->attr('adklsfjkladklf'));
 	}
+
+	public function testRecursion()
+	{
+		try
+		{
+			$b = hb('b');
+			$b->append($b);
+			$this->fail('Exception not thrown for simple recursive appending');
+		}
+		catch (HtmlBuilderException $e)
+		{
+		}
+
+		try
+		{
+			$b = hb('b');
+			$b->append(hb('u')->appendText('foo'))->append($u=hb('u'));
+			$u->append($b);
+			$this->fail('Exception not thrown for nested recursive appending');
+		}
+		catch (HtmlBuilderException $e)
+		{
+		}
+
+		try
+		{
+			$b = hb('b');
+			$b->appendTo($b);
+			$this->fail('Exception not thrown for simple recursive appending');
+		}
+		catch (HtmlBuilderException $e)
+		{
+		}
+
+		try
+		{
+			$b = hb('b');
+			$b->prependTo($b);
+			$this->fail('Exception not thrown for simple recursive prepending');
+		}
+		catch (HtmlBuilderException $e)
+		{
+		}
+
+		try
+		{
+			$b = hb('b');
+			$b->prepend($b);
+			$this->fail('Exception not thrown for simple recursive prepending');
+		}
+		catch (HtmlBuilderException $e)
+		{
+		}
+
+	}
 }
